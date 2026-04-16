@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ICSSR Agricultural Survey Dashboard – Mulbagal, Kolar</title>
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   CSS CUSTOM PROPERTIES & RESET
+   ============================================================ */
+:root {
+  --primary:   #1a56db;
+  --primary-light: #e8f0fe;
+  --green:     #0e9f6e;
+  --green-light:#d1fae5;
+  --amber:     #d97706;
+  --amber-light:#fef3c7;
+  --rose:      #e02424;
+  --rose-light:#fee2e2;
+  --purple:    #7c3aed;
+  --purple-light:#ede9fe;
+  --teal:      #0891b2;
+  --teal-light:#cffafe;
+
+  --bg:        #f0f4f8;
+  --surface:   #ffffff;
+  --border:    #e2e8f0;
+  --text:      #1e293b;
+  --text-sub:  #64748b;
+  --text-muted:#94a3b8;
+  --radius:    14px;
+  --shadow:    0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.10);
+
+  /* Chart colour palette */
+  --c1:#3b82f6; --c2:#10b981; --c3:#f59e0b; --c4:#ef4444;
+  --c5:#8b5cf6; --c6:#06b6d4; --c7:#f97316; --c8:#ec4899;
+  --c9:#14b8a6; --c10:#a3e635;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ============================================================
+   TOPBAR / HEADER
+   ============================================================ */
+.topbar {
+  background: linear-gradient(135deg, #1a56db 0%, #1e3a8a 100%);
+  color: #fff;
+  padding: 28px 40px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.topbar::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.topbar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  position: relative;
+}
+.topbar-title h1 {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(18px, 2.5vw, 28px);
+  font-weight: 800;
+  letter-spacing: -.3px;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.topbar-title p {
+  font-size: 13px;
+  color: rgba(255,255,255,.72);
+  font-weight: 400;
+}
+.topbar-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.meta-chip {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 30px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,.9);
+  backdrop-filter: blur(4px);
+}
+
+/* ============================================================
+   NAV TABS
+   ============================================================ */
+.tab-bar {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.tab-bar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 24px;
+}
+.tab-bar-inner::-webkit-scrollbar { display: none; }
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  padding: 14px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .2s, border-color .2s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.tab-btn .tab-icon { font-size: 15px; }
+.tab-btn:hover { color: var(--primary); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* ============================================================
+   MAIN WRAPPER
+   ============================================================ */
+.main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ============================================================
+   SECTION HEADERS
+   ============================================================ */
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  margin-top: 32px;
+}
+.sec-head:first-child { margin-top: 0; }
+.sec-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.sec-head h2 {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+.sec-head p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.sec-divider {
+  border: none;
+  border-top: 2px dashed var(--border);
+  margin: 36px 0 28px;
+}
+
+/* ============================================================
+   KPI SUMMARY CARDS
+   ============================================================ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.kpi-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: transform .2s, box-shadow .2s;
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.kpi-icon-wrap {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.kpi-body {}
+.kpi-val {
+  font-family: 'Sora', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+.kpi-label {
+  font-size: 11.5px;
+  color: var(--text-sub);
+  margin-top: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ============================================================
+   CHART CARDS
+   ============================================================ */
+.chart-grid {
+  display: grid;
+  gap: 20px;
+}
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g31 { grid-template-columns: 1.6fr 1fr; }
+.g13 { grid-template-columns: 1fr 1.6fr; }
+.g1 { grid-template-columns: 1fr; }
+
+.chart-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 22px 24px 20px;
+  display: flex;
+  flex-direction: column;
+}
+.chart-card .c-head {
+  margin-bottom: 16px;
+}
+.chart-card .c-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+.chart-card .c-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.chart-wrap {
+  position: relative;
+  flex: 1;
+}
+.chart-wrap canvas { width: 100% !important; }
+
+/* ============================================================
+   INSIGHT CALLOUT
+   ============================================================ */
+.insight-band {
+  background: linear-gradient(135deg, #1a56db 0%, #1e3a8a 100%);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  color: #fff;
+  margin-top: 20px;
+}
+.insight-band h3 {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  opacity: .95;
+}
+.insight-band ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+}
+.insight-band li {
+  font-size: 12.5px;
+  opacity: .85;
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.5;
+}
+.insight-band li::before {
+  content: '▸';
+  position: absolute; left: 0;
+  opacity: .7;
+}
+
+/* ============================================================
+   INLINE STAT ROWS (horizontal bar style)
+   ============================================================ */
+.stat-table { width: 100%; }
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label {
+  font-size: 12.5px;
+  color: var(--text);
+  min-width: 110px;
+  flex-shrink: 0;
+  text-transform: capitalize;
+}
+.stat-bar-track {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+.stat-count {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ============================================================
+   BADGE / TAG
+   ============================================================ */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.badge-blue { background: var(--primary-light); color: var(--primary); }
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-rose  { background: var(--rose-light);  color: var(--rose);  }
+.badge-purple{ background: var(--purple-light); color: var(--purple); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  text-align: center;
+  padding: 28px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  margin-top: 40px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .g31, .g13 { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .topbar { padding: 22px 20px; }
+  .main { padding: 20px 14px 60px; }
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .insight-band ul { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .tab-btn { padding: 12px 14px; font-size: 12px; }
+}
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.panel.active .chart-card,
+.panel.active .kpi-card,
+.panel.active .insight-band {
+  animation: fadeUp .4s ease both;
+}
+.panel.active .chart-card:nth-child(2) { animation-delay: .06s; }
+.panel.active .chart-card:nth-child(3) { animation-delay: .12s; }
+.panel.active .chart-card:nth-child(4) { animation-delay: .18s; }
+</style>
+</head>
+<body>
+
+<!-- ================================================================
+     TOPBAR
+     ================================================================ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-title">
+      <h1>🌾 ICSSR Agricultural Household Survey</h1>
+      <p>Mulbagal Taluk · Kolar District · Karnataka · Survey Year 2026</p>
+    </div>
+    <div class="topbar-meta">
+      <span class="meta-chip">📊 383 Households</span>
+      <span class="meta-chip">🗂 20 Variables</span>
+      <span class="meta-chip">📍 15 Villages</span>
+      <span class="meta-chip">🔬 Statistical Analysis · R &amp; Chart.js</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================================================================
+     TAB BAR
+     ================================================================ -->
+<nav class="tab-bar">
+  <div class="tab-bar-inner">
+    <button class="tab-btn active" onclick="showTab('overview',this)">
+      <span class="tab-icon">🏠</span> Overview
+    </button>
+    <button class="tab-btn" onclick="showTab('demographics',this)">
+      <span class="tab-icon">👥</span> Demographics
+    </button>
+    <button class="tab-btn" onclick="showTab('land',this)">
+      <span class="tab-icon">🗺️</span> Land &amp; Location
+    </button>
+    <button class="tab-btn" onclick="showTab('crops',this)">
+      <span class="tab-icon">🌱</span> Crops &amp; Irrigation
+    </button>
+    <button class="tab-btn" onclick="showTab('income',this)">
+      <span class="tab-icon">💰</span> Income &amp; Dairy
+    </button>
+    <button class="tab-btn" onclick="showTab('digital',this)">
+      <span class="tab-icon">📱</span> Digital Adoption
+    </button>
+  </div>
+</nav>
+
+<!-- ================================================================
+     MAIN CONTENT
+     ================================================================ -->
+<div class="main">
+
+<!-- ================================================================
+     TAB 1 · OVERVIEW
+     ================================================================ -->
+<section id="panel-overview" class="panel active">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#e8f0fe;">📋</div>
+      <div class="kpi-body">
+        <div class="kpi-val">383</div>
+        <div class="kpi-label">Total Households</div>
+        <div class="kpi-sub">Mulbagal, Kolar</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#d1fae5;">🗺️</div>
+      <div class="kpi-body">
+        <div class="kpi-val">1.77</div>
+        <div class="kpi-label">Avg. Land (Acres)</div>
+        <div class="kpi-sub">Median: 1.00 acre</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#fef3c7;">🥛</div>
+      <div class="kpi-body">
+        <div class="kpi-val">₹1.45L</div>
+        <div class="kpi-label">Avg. Milk Income</div>
+        <div class="kpi-sub">Among 56 dairy HHs</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#ede9fe;">🌾</div>
+      <div class="kpi-body">
+        <div class="kpi-val">336</div>
+        <div class="kpi-label">Kharif Crop HHs</div>
+        <div class="kpi-sub">Top: Ragi (141)</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#fee2e2;">📡</div>
+      <div class="kpi-body">
+        <div class="kpi-val">87%</div>
+        <div class="kpi-label">Internet Access</div>
+        <div class="kpi-sub">Mostly mobile data</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#cffafe;">🤖</div>
+      <div class="kpi-body">
+        <div class="kpi-val">3.7%</div>
+        <div class="kpi-label">AI/IoT Aware</div>
+        <div class="kpi-sub">Only 14 households</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#d1fae5;">🌱</div>
+      <div class="kpi-body">
+        <div class="kpi-val">36%</div>
+        <div class="kpi-label">Land Owners</div>
+        <div class="kpi-sub">139 of 383 HHs</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#fef3c7;">📱</div>
+      <div class="kpi-body">
+        <div class="kpi-val">28%</div>
+        <div class="kpi-label">Social Media Agri</div>
+        <div class="kpi-sub">105 use for farming</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overview charts row 1 -->
+  <div class="chart-grid g31">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Village-wise Household Distribution</div>
+        <div class="c-sub">Count of surveyed households per village (top 15)</div>
+      </div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="c-village"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Social Category Distribution</div>
+        <div class="c-sub">Caste/social group of households</div>
+      </div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="c-social-pie"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overview row 2 -->
+  <div class="chart-grid g3" style="margin-top:20px">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Internet Access</div>
+        <div class="c-sub">Type of internet connectivity</div>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="c-internet-ov"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Social Media for Agriculture</div>
+        <div class="c-sub">Farmers using social media for agri info</div>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="c-socmedia-ov"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">AI / IoT Awareness</div>
+        <div class="c-sub">Awareness of AI &amp; IoT in farming</div>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="c-ai-ov"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insight band -->
+  <div class="insight-band">
+    <h3>📌 Key Takeaways — Survey Overview</h3>
+    <ul>
+      <li>383 households across 15 villages in Mulbagal taluk were surveyed</li>
+      <li>Avani is the largest surveyed village with 83 households</li>
+      <li>Only 36% of households own agricultural land</li>
+      <li>Ragi (finger millet) is the dominant Kharif crop (141 HHs)</li>
+      <li>87% have internet access, mostly via mobile data</li>
+      <li>AI/IoT awareness is critically low at just 3.7% of households</li>
+      <li>56 households earn from dairy, averaging ₹1.45 lakh/year</li>
+      <li>28% use social media to obtain agricultural information</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================================================================
+     TAB 2 · DEMOGRAPHICS
+     ================================================================ -->
+<section id="panel-demographics" class="panel">
+
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#e8f0fe;">👥</div>
+    <div>
+      <h2>Social Category &amp; Religion</h2>
+      <p>Household social group, caste, and religious composition</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Social Category — Bar Chart</div>
+        <div class="c-sub">General / SC / OBC / ST / Others</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-social-bar"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Religion Distribution</div>
+        <div class="c-sub">Hindu · Muslim · Others</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-religion"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sec-divider">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#d1fae5;">🎓</div>
+    <div>
+      <h2>Education &amp; Dependents</h2>
+      <p>Highest qualification and household dependency load</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Education Level Distribution</div>
+        <div class="c-sub">Degree · PUC · School · No Education · Postgraduate</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-education"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Number of Dependents</div>
+        <div class="c-sub">Household size by dependency groups</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-dependents"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline ranked list for social -->
+  <div class="chart-grid g2" style="margin-top:20px">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Social Category — Ranked Breakdown</div>
+        <div class="c-sub">Proportional bar visualization · n = 380</div>
+      </div>
+      <div class="stat-table" style="margin-top:8px">
+        <div class="stat-row">
+          <span class="stat-label">General</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:60.5%;background:var(--c1)"></div></div>
+          <span class="stat-count">231</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">SC</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:20.7%;background:var(--c2)"></div></div>
+          <span class="stat-count">79</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">OBC</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:14.1%;background:var(--c3)"></div></div>
+          <span class="stat-count">54</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Others</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:3.1%;background:var(--c4)"></div></div>
+          <span class="stat-count">12</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">ST</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:1.0%;background:var(--c5)"></div></div>
+          <span class="stat-count">4</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Education Level — Ranked Breakdown</div>
+        <div class="c-sub">Proportional bar visualization · n = 383</div>
+      </div>
+      <div class="stat-table" style="margin-top:8px">
+        <div class="stat-row">
+          <span class="stat-label">Degree</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:35.8%;background:var(--c1)"></div></div>
+          <span class="stat-count">137</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">PUC</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:23.2%;background:var(--c2)"></div></div>
+          <span class="stat-count">89</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">School</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:20.1%;background:var(--c3)"></div></div>
+          <span class="stat-count">77</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">No Education</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:14.4%;background:var(--c4)"></div></div>
+          <span class="stat-count">55</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Postgraduate</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:6.5%;background:var(--c5)"></div></div>
+          <span class="stat-count">25</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     TAB 3 · LAND & LOCATION
+     ================================================================ -->
+<section id="panel-land" class="panel">
+
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#fef3c7;">📍</div>
+    <div>
+      <h2>Geographic Coverage — State / District / Taluk</h2>
+      <p>Administrative hierarchy of the survey area</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g3">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">By State</div>
+        <div class="c-sub">All 383 records: Karnataka</div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="c-state"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">By District</div>
+        <div class="c-sub">All 383 records: Kolar</div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="c-district"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">By Taluk</div>
+        <div class="c-sub">All 383 records: Mulbagal</div>
+      </div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="c-taluk"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sec-divider">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#d1fae5;">🏘️</div>
+    <div>
+      <h2>Village Distribution &amp; Land Holdings</h2>
+      <p>Household counts by village and land acreage analysis</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Households by Village (Top 15)</div>
+        <div class="c-sub">Horizontal bar chart showing sample size per village</div>
+      </div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="c-village2"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Has Agricultural Land?</div>
+        <div class="c-sub">Proportion of land-owning vs non-owning households</div>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="c-hasland"></canvas>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
+        <div style="background:var(--green-light);color:var(--green);padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600">
+          ✅ Own Land: 139 (36.3%)
+        </div>
+        <div style="background:var(--rose-light);color:var(--rose);padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600">
+          ❌ No Land: 244 (63.7%)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid g1" style="margin-top:20px">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Land Acreage Distribution — Histogram</div>
+        <div class="c-sub">Frequency of households by land holding size bracket (acres) · n = 383</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-landacre"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     TAB 4 · CROPS & IRRIGATION
+     ================================================================ -->
+<section id="panel-crops" class="panel">
+
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#d1fae5;">🌾</div>
+    <div>
+      <h2>Kharif Season Crops (Jun – Oct)</h2>
+      <p>Crop frequency and average area cultivated during Kharif season</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Kharif Crop — Number of Households</div>
+        <div class="c-sub">Count of HHs growing each Kharif crop</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-crop-kharif-count"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Kharif Crop vs Average Area (acres)</div>
+        <div class="c-sub">Mean area cultivated per crop type in Kharif season</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-crop-kharif-area"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sec-divider">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#fef3c7;">🌿</div>
+    <div>
+      <h2>Rabi Season Crops (Nov – Mar)</h2>
+      <p>Crop frequency and area cultivated during Rabi season</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Rabi Crop — Number of Households</div>
+        <div class="c-sub">Count of HHs growing each Rabi crop (fewer HHs in Rabi)</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-crop-rabi-count"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Rabi Crop vs Average Area (acres)</div>
+        <div class="c-sub">Mean area cultivated per crop type in Rabi season</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-crop-rabi-area"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sec-divider">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#cffafe;">💧</div>
+    <div>
+      <h2>Irrigation Methods — Kharif vs Rabi</h2>
+      <p>Water source and irrigation technique used per season</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Irrigation Method — Kharif Season</div>
+        <div class="c-sub">Drip · Conjunctive · Borewell · Open Well · Surface · Tank</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-irr-kharif"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Irrigation Method — Rabi Season</div>
+        <div class="c-sub">Conjunctive · Drip · Borewell · Open Well · Sprinkler</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-irr-rabi"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Combined comparison -->
+  <div class="chart-grid g1" style="margin-top:20px">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Irrigation Methods — Kharif vs Rabi Comparison</div>
+        <div class="c-sub">Side-by-side grouped bar chart for both seasons</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-irr-compare"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     TAB 5 · INCOME & DAIRY
+     ================================================================ -->
+<section id="panel-income" class="panel">
+
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#fef3c7;">💰</div>
+    <div>
+      <h2>Milk / Dairy Income Analysis</h2>
+      <p>Annual milk income distribution among dairy households</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:24px">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#fef3c7;">🐄</div>
+      <div class="kpi-body">
+        <div class="kpi-val">56</div>
+        <div class="kpi-label">Dairy Households</div>
+        <div class="kpi-sub">14.6% of total</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#d1fae5;">📈</div>
+      <div class="kpi-body">
+        <div class="kpi-val">₹1.45L</div>
+        <div class="kpi-label">Mean Milk Income</div>
+        <div class="kpi-sub">Annual average</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#ede9fe;">📊</div>
+      <div class="kpi-body">
+        <div class="kpi-val">₹1.14L</div>
+        <div class="kpi-label">Median Income</div>
+        <div class="kpi-sub">50th percentile</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#fee2e2;">🏆</div>
+      <div class="kpi-body">
+        <div class="kpi-val">₹6L</div>
+        <div class="kpi-label">Maximum Income</div>
+        <div class="kpi-sub">Highest recorded</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap" style="background:#cffafe;">💵</div>
+      <div class="kpi-body">
+        <div class="kpi-val">₹6K</div>
+        <div class="kpi-label">Minimum Income</div>
+        <div class="kpi-sub">Lowest non-zero</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid g31">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Milk Income Distribution — Histogram</div>
+        <div class="c-sub">Frequency of dairy households by annual income bracket (₹) · n = 56</div>
+      </div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="c-milk-dist"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Dairy vs Non-Dairy Households</div>
+        <div class="c-sub">Share of households with milk income</div>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="c-dairy-share"></canvas>
+      </div>
+      <div style="margin-top:16px">
+        <div class="stat-row">
+          <span class="stat-label">Dairy HHs</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:14.6%;background:var(--c3)"></div></div>
+          <span class="stat-count">56</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Non-Dairy</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:85.4%;background:var(--c6)"></div></div>
+          <span class="stat-count">327</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sec-divider">
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#ede9fe;">📊</div>
+    <div>
+      <h2>Milk Income — Bracket Breakdown</h2>
+      <p>Ranked distribution of dairy households by income range</p>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="c-head">
+      <div class="c-title">Milk Income Bracket — Detailed Breakdown</div>
+      <div class="c-sub">Number of dairy households in each annual income bracket</div>
+    </div>
+    <div class="stat-table">
+      <div class="stat-row">
+        <span class="stat-label">&lt; ₹25,000</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:4%;background:var(--c4)"></div></div>
+        <span class="stat-count">2</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">₹25K – 50K</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:7%;background:var(--c3)"></div></div>
+        <span class="stat-count">4</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">₹50K – 1L</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:27%;background:var(--c2)"></div></div>
+        <span class="stat-count">15</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">₹1L – 2L</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:36%;background:var(--c1)"></div></div>
+        <span class="stat-count">20</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">₹2L – 3L</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:14%;background:var(--c5)"></div></div>
+        <span class="stat-count">8</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">&gt; ₹3L</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:12%;background:var(--c7)"></div></div>
+        <span class="stat-count">7</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     TAB 6 · DIGITAL ADOPTION
+     ================================================================ -->
+<section id="panel-digital" class="panel">
+
+  <div class="sec-head">
+    <div class="sec-icon" style="background:#cffafe;">📡</div>
+    <div>
+      <h2>Internet &amp; Connectivity</h2>
+      <p>Type of internet access among surveyed households</p>
+    </div>
+  </div>
+
+  <div class="chart-grid g3">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Internet Access Type</div>
+        <div class="c-sub">Mobile data vs broadband vs none</div>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="c-internet"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Social Media for Agriculture</div>
+        <div class="c-sub">Yes / No — using platforms for agri information</div>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="c-socmedia"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">AI / IoT Awareness</div>
+        <div class="c-sub">Awareness of AI/IoT tools in agriculture</div>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="c-ai"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid g2" style="margin-top:20px">
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Digital Adoption — Ranked Breakdown</div>
+        <div class="c-sub">Proportional comparison of three digital indicators</div>
+      </div>
+      <div class="stat-table" style="margin-top:8px">
+        <div class="stat-row">
+          <span class="stat-label" style="min-width:130px">Internet Access</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:89.3%;background:var(--c1)"></div></div>
+          <span class="stat-count">89%</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" style="min-width:130px">Broadband Access</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:2.6%;background:var(--c6)"></div></div>
+          <span class="stat-count">2.6%</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" style="min-width:130px">Social Media Agri</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:27.4%;background:var(--c2)"></div></div>
+          <span class="stat-count">27%</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" style="min-width:130px">AI/IoT Aware</span>
+          <div class="stat-bar-track"><div class="stat-bar-fill" style="width:3.7%;background:var(--c4)"></div></div>
+          <span class="stat-count">3.7%</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="c-head">
+        <div class="c-title">Digital Adoption — Grouped Comparison</div>
+        <div class="c-sub">Count of Yes / No responses across all three digital variables</div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="c-digital-compare"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-band">
+    <h3>📱 Digital Adoption Insights</h3>
+    <ul>
+      <li>343 of 383 households (89%) have internet access</li>
+      <li>Mobile data is overwhelmingly the dominant internet type (333 HHs)</li>
+      <li>Only 10 households have broadband — rural connectivity gap remains</li>
+      <li>105 households (27%) use social media for agricultural information</li>
+      <li>AI/IoT awareness is critically low: only 14 of 363 households (3.7%)</li>
+      <li>Despite high mobile penetration, smart farming technology uptake lags</li>
+      <li>Outreach and training programs are the primary bottleneck, not device access</li>
+      <li>WhatsApp &amp; YouTube are the primary social media platforms for agri info</li>
+    </ul>
+  </div>
+</section>
+
+</div><!-- /.main -->
+
+<!-- ================================================================
+     FOOTER
+     ================================================================ -->
+<footer class="footer">
+  ICSSR Agricultural Household Survey · Mulbagal, Kolar, Karnataka · 2026 &nbsp;|&nbsp;
+  Analysis built with <strong>R (open source)</strong> · Visualized with <strong>Chart.js</strong> &nbsp;|&nbsp;
+  n = 383 Households &nbsp;·&nbsp; 20 Variables
+</footer>
+
+<!-- ================================================================
+     JAVASCRIPT — DATA + CHARTS
+     ================================================================ -->
+<script>
+/* ============================================================
+   REAL DATA EXTRACTED FROM EXCEL (clean_dashboard_data.xlsx)
+   Replace this section with your own data if the dataset changes.
+   ============================================================ */
+const DATA = {
+  total: 383,
+  avg_land: 1.77,
+  avg_milk: 144732,
+  dairy_hh: 56,
+
+  // Geographic
+  state:    { "Karnataka": 383 },
+  district: { "Kolar": 383 },
+  taluk:    { "Mulbagal": 383 },
+  village:  {
+    "Avani":83,"Cholamgunte":40,"Kadiripura":37,"Honaganahalli":30,
+    "Angodahalli":30,"Gollahalli":25,"Koladevi":23,"Mondikal":21,
+    "Vammsandra":19,"Tavarekere":17,"Majara Ramapura":14,
+    "Harappanayakanahalli":13,"K. Hosahalli":7,"Devarayasamudra":6,"Ramapura":5
+  },
+
+  // Demographics
+  social:    { "General":231, "SC":79, "OBC":54, "Others":12, "ST":4 },
+  religion:  { "Hindu":374, "Muslim":6 },
+  education: { "Degree":137, "PUC":89, "School":77, "No Education":55, "Postgraduate":25 },
+  dependents:{ "5+":179, "3–4":177, "1–2":24, "Unknown":3 },
+
+  // Land
+  has_land:   { "Yes":139, "No":244 },
+  land_brackets: { "0 ac":146, "0–1 ac":69, "1–2 ac":71, "2–3 ac":33, "3–5 ac":38, "5–10 ac":22, "10+ ac":4 },
+
+  // Crops
+  crop_kharif: { "Ragi":141, "Tomato":104, "Mango":61, "Mulberry":16, "Silk":12 },
+  kharif_crop_area: { "Mango":2.53, "Tomato":1.81, "Silk":1.56, "Ragi":1.52, "Mulberry":1.70 },
+  crop_rabi:   { "Tomato":17, "Mulberry":10, "Mango":6, "Ragi":5 },
+  rabi_crop_area: { "Mango":2.92, "Tomato":1.56, "Rabi":1.30, "Mulberry":1.25 },
+
+  // Irrigation
+  irr_kharif: { "Drip":104, "Conjunctive":87, "Borewell":71, "Open Well":17, "Surface":6, "Tank":6, "Lake":1, "Sprinkler":1 },
+  irr_rabi:   { "Conjunctive":78, "Drip":27, "Borewell":5, "Open Well":2, "Sprinkler":1, "Surface":1 },
+
+  // Milk income
+  milk_dist: { "<₹25K":2, "₹25K–50K":4, "₹50K–1L":15, "₹1L–2L":20, "₹2L–3L":8, ">₹3L":7 },
+
+  // Digital
+  internet:         { "Mobile Data":333, "Broadband":10, "None":40 },
+  social_media_agri:{ "No":266, "Yes":105, "Unknown":12 },
+  ai_awareness:     { "No":349, "Yes":14, "Unknown":20 },
+};
+
+/* ============================================================
+   COLOUR PALETTES
+   ============================================================ */
+const PALETTE = [
+  '#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6',
+  '#06b6d4','#f97316','#ec4899','#14b8a6','#a3e635',
+  '#6366f1','#84cc16','#64748b','#fb7185','#fbbf24'
+];
+const alpha = (hex, a) => hex + Math.round(a*255).toString(16).padStart(2,'0');
+
+/* ============================================================
+   CHART GLOBAL DEFAULTS
+   ============================================================ */
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size   = 12;
+Chart.defaults.color       = '#64748b';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 14;
+Chart.defaults.plugins.tooltip.backgroundColor = '#1e293b';
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+Chart.defaults.plugins.tooltip.titleFont = { weight:'600', size:12 };
+Chart.defaults.plugins.tooltip.bodyFont  = { size:12 };
+
+/* ============================================================
+   HELPER FUNCTIONS
+   ============================================================ */
+const keys = o => Object.keys(o);
+const vals = o => Object.values(o);
+
+function makeBar(id, labels, data, {
+  colors=null, horizontal=false, label='Count', maxTicks=null,
+  borderRadius=6, indexAxis='x'
+}={}) {
+  const c = colors || PALETTE.slice(0, labels.length);
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data,
+        backgroundColor: c.map(x => alpha(x,'b8')),
+        borderColor: c,
+        borderWidth: 1.5,
+        borderRadius,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: horizontal ? 'y' : 'x',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          grid: { color:'#f1f5f9', drawBorder:false },
+          ticks: { maxTicksLimit: maxTicks || 10, font:{size:11} }
+        },
+        y: {
+          grid: { color:'#f1f5f9', drawBorder:false },
+          ticks: { font:{size:11} },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+function makePie(id, labels, data, { colors=null, doughnut=true, legend='bottom' }={}) {
+  const c = colors || PALETTE.slice(0, labels.length);
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  return new Chart(ctx, {
+    type: doughnut ? 'doughnut' : 'pie',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: c.map(x => alpha(x,'cc')),
+        borderColor: c,
+        borderWidth: 2,
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: doughnut ? '55%' : '0%',
+      plugins: {
+        legend: {
+          position: legend,
+          labels: { font:{size:11}, padding:10 }
+        }
+      }
+    }
+  });
+}
+
+function makeGroupedBar(id, labels, datasets) {
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  return new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position:'top' } },
+      scales: {
+        x: { grid:{ color:'#f1f5f9' }, ticks:{font:{size:11}} },
+        y: { grid:{ color:'#f1f5f9' }, beginAtZero:true, ticks:{font:{size:11}} }
+      }
+    }
+  });
+}
+
+/* ============================================================
+   BUILD ALL CHARTS
+   ============================================================ */
+function buildAllCharts() {
+
+  /* ── OVERVIEW ── */
+  makeBar('c-village', keys(DATA.village), vals(DATA.village),
+    { colors: PALETTE, label:'Households', borderRadius:4 });
+
+  makePie('c-social-pie', keys(DATA.social), vals(DATA.social),
+    { colors:['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] });
+
+  makePie('c-internet-ov', keys(DATA.internet), vals(DATA.internet),
+    { colors:['#3b82f6','#10b981','#94a3b8'] });
+
+  makePie('c-socmedia-ov', ['No','Yes','Unknown'], [266,105,12],
+    { colors:['#ef4444','#10b981','#94a3b8'] });
+
+  makePie('c-ai-ov', ['No','Yes','Unknown'], [349,14,20],
+    { colors:['#ef4444','#3b82f6','#94a3b8'] });
+
+  /* ── DEMOGRAPHICS ── */
+  makeBar('c-social-bar', keys(DATA.social), vals(DATA.social),
+    { colors:['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'], label:'Households' });
+
+  makePie('c-religion', keys(DATA.religion), vals(DATA.religion),
+    { colors:['#f97316','#8b5cf6'] });
+
+  makeBar('c-education', keys(DATA.education), vals(DATA.education),
+    { colors:['#3b82f6','#06b6d4','#f59e0b','#ef4444','#8b5cf6'], label:'Households' });
+
+  makeBar('c-dependents', keys(DATA.dependents), vals(DATA.dependents),
+    { colors:['#10b981','#3b82f6','#f59e0b','#94a3b8'], label:'Households' });
+
+  /* ── LAND & LOCATION ── */
+  makeBar('c-state',    ['Karnataka'], [383], { colors:['#3b82f6'], label:'Count' });
+  makeBar('c-district', ['Kolar'],     [383], { colors:['#10b981'], label:'Count' });
+  makeBar('c-taluk',    ['Mulbagal'],  [383], { colors:['#f59e0b'], label:'Count' });
+
+  makeBar('c-village2', keys(DATA.village), vals(DATA.village),
+    { colors: PALETTE, horizontal:true, label:'HHs', borderRadius:4 });
+
+  makePie('c-hasland', ['Yes – Own Land','No Land'], [139,244],
+    { colors:['#10b981','#ef4444'] });
+
+  makeBar('c-landacre', keys(DATA.land_brackets), vals(DATA.land_brackets),
+    { colors: PALETTE, label:'Households', borderRadius:5 });
+
+  /* ── CROPS ── */
+  makeBar('c-crop-kharif-count', keys(DATA.crop_kharif), vals(DATA.crop_kharif),
+    { colors:['#10b981','#ef4444','#f59e0b','#8b5cf6','#06b6d4'], label:'Households' });
+
+  makeBar('c-crop-kharif-area', keys(DATA.kharif_crop_area), vals(DATA.kharif_crop_area),
+    { colors:['#f59e0b','#10b981','#06b6d4','#3b82f6','#8b5cf6'], label:'Avg Area (acres)' });
+
+  makeBar('c-crop-rabi-count', keys(DATA.crop_rabi), vals(DATA.crop_rabi),
+    { colors:['#ef4444','#8b5cf6','#f59e0b','#10b981'], label:'Households' });
+
+  makeBar('c-crop-rabi-area', ['Mango','Tomato','Ragi','Mulberry'], [2.92,1.56,1.30,1.25],
+    { colors:['#f59e0b','#ef4444','#10b981','#8b5cf6'], label:'Avg Area (acres)' });
+
+  makePie('c-irr-kharif', keys(DATA.irr_kharif), vals(DATA.irr_kharif),
+    { colors: PALETTE, doughnut:true });
+
+  makePie('c-irr-rabi', keys(DATA.irr_rabi), vals(DATA.irr_rabi),
+    { colors: PALETTE, doughnut:true });
+
+  // Common irrigation methods between seasons
+  const irrLabels = ['Drip','Conjunctive','Borewell','Open Well','Surface','Sprinkler'];
+  const irrKharif = [104, 87, 71, 17, 6, 1];
+  const irrRabi   = [27,  78,  5,  2, 1, 1];
+  makeGroupedBar('c-irr-compare', irrLabels, [
+    {
+      label: 'Kharif Season',
+      data: irrKharif,
+      backgroundColor: alpha('#3b82f6','aa'),
+      borderColor: '#3b82f6',
+      borderWidth: 1.5,
+      borderRadius: 5,
+    },
+    {
+      label: 'Rabi Season',
+      data: irrRabi,
+      backgroundColor: alpha('#10b981','aa'),
+      borderColor: '#10b981',
+      borderWidth: 1.5,
+      borderRadius: 5,
+    }
+  ]);
+
+  /* ── INCOME / DAIRY ── */
+  makeBar('c-milk-dist', keys(DATA.milk_dist), vals(DATA.milk_dist),
+    { colors:['#94a3b8','#f59e0b','#10b981','#3b82f6','#8b5cf6','#f97316'], label:'Dairy HHs' });
+
+  makePie('c-dairy-share', ['Dairy HHs (14.6%)','Non-Dairy (85.4%)'], [56,327],
+    { colors:['#f59e0b','#e2e8f0'] });
+
+  /* ── DIGITAL ── */
+  makePie('c-internet', keys(DATA.internet), vals(DATA.internet),
+    { colors:['#3b82f6','#10b981','#94a3b8'] });
+
+  makePie('c-socmedia', ['No','Yes','Unknown'], [266,105,12],
+    { colors:['#ef4444','#10b981','#94a3b8'] });
+
+  makePie('c-ai', ['No','Yes','Unknown'], [349,14,20],
+    { colors:['#ef4444','#3b82f6','#94a3b8'] });
+
+  makeGroupedBar('c-digital-compare',
+    ['Internet Access','Social Media Agri','AI/IoT Aware'],
+    [
+      {
+        label: 'Yes',
+        data: [343, 105, 14],
+        backgroundColor: alpha('#10b981','cc'),
+        borderColor:'#10b981', borderWidth:1.5, borderRadius:5
+      },
+      {
+        label: 'No',
+        data: [40, 266, 349],
+        backgroundColor: alpha('#ef4444','cc'),
+        borderColor:'#ef4444', borderWidth:1.5, borderRadius:5
+      }
+    ]
+  );
+}
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+let chartsBuilt = false;
+
+function showTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* Build charts after page load */
+window.addEventListener('load', () => {
+  buildAllCharts();
+});
+</script>
+
+</body>
+</html>
